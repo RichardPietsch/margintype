@@ -28,6 +28,7 @@ Self-hosted, minimalist writing app foundation for book authors.
    ```bash
    npm run dev
    ```
+   `npm run dev` now runs `prisma generate` first, so `@prisma/client` is always initialized before Next.js starts.
 
 ## Setup (Docker)
 ```bash
@@ -37,6 +38,7 @@ Then run migrations inside app container:
 ```bash
 docker compose exec app npx prisma migrate deploy
 ```
+The compose app command also runs `npx prisma generate` before starting the dev server to prevent first-boot Prisma client errors.
 
 ## Current foundation included
 - Registration/login/logout/session handling
