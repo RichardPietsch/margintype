@@ -38,8 +38,9 @@ export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { book
     if (!editor || !canEdit) return;
     const timer = setTimeout(() => {
       const text = editor.getText();
+      const jsonString = JSON.stringify(editor.getJSON());
       startTransition(async () => {
-        await saveDocument(bookId, editor.getJSON(), text);
+        await saveDocument(bookId, jsonString, text);
       });
     }, 900);
 
