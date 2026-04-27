@@ -35,7 +35,8 @@ Self-hosted, minimalist writing app foundation for book authors.
 ```bash
 docker compose up --build
 ```
-The compose app command runs `prisma generate`, waits for DB readiness, and applies `prisma migrate deploy` before starting the dev server.
+The compose app command runs `prisma generate`, waits for DB readiness, and applies `prisma db push` before starting the dev server.
+(`migrate deploy` requires migration files; this scaffold currently syncs from `schema.prisma` on first run.)
 If you customize Docker build steps, keep `prisma/schema.prisma` available before any `npm install`/`postinstall` that triggers `prisma generate`.
 
 ## Optional initial user (from `.env`)
