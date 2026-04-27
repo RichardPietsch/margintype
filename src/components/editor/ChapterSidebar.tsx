@@ -7,7 +7,7 @@ type Chapter = { id: string; title: string; type: "AUTO" | "PLANNED" };
 
 export function ChapterSidebar({ bookId, title, chapters, onEditChapter, canManage }: { bookId: string; title: string; chapters: Chapter[]; onEditChapter: (id: string) => void; canManage: boolean }) {
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-zinc-200 bg-zinc-50/40 p-4">
+    <aside className="flex h-screen w-80 flex-col border-r border-zinc-200 bg-zinc-50/40 p-4">
       <a href="/dashboard" className="mb-4 text-xs text-zinc-500">← Zurück</a>
       <h2 className="mb-4 line-clamp-2 text-sm font-medium">{title}</h2>
       <ul className="flex-1 space-y-2 overflow-y-auto">

@@ -4,6 +4,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
+import Highlight from "@tiptap/extension-highlight";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { saveDocument } from "@/server/actions/documents";
 import { createNote } from "@/server/actions/notes";
@@ -45,7 +46,8 @@ export function BookEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1] } }),
       Placeholder.configure({ placeholder: "Beginne mit deinem Manuskript …" }),
-      CharacterCount
+      CharacterCount,
+      Highlight.configure({ multicolor: true })
       // TODO: Persist explicit chapter/note anchors as hidden marks in document JSON.
     ],
     content: contentJson,
@@ -165,6 +167,7 @@ export function BookEditor({
           if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
           const body = window.prompt("Notiz");
           if (!body) return;
+          editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
           startTransition(async () => {
             await createNote({
               bookId,
