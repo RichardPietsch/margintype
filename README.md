@@ -39,6 +39,7 @@ Then run migrations inside app container:
 docker compose exec app npx prisma migrate deploy
 ```
 The compose app command also runs `npx prisma generate` before starting the dev server to prevent first-boot Prisma client errors.
+If you customize Docker build steps, keep `prisma/schema.prisma` available before any `npm install`/`postinstall` that triggers `prisma generate`.
 
 ## Current foundation included
 - Registration/login/logout/session handling
