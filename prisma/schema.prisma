@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookRole {
+  OWNER
+  AUTHOR
+  COLLABORATOR
+}
+
+enum ChapterType {
+  AUTO
+  PLANNED
+}
+
+enum ChapterStatus {
+  PLANNED
+  DRAFTING
+  REVISING
+  DONE
+}
+
+enum NoteStatus {
+  OPEN
+  DONE
+}
+
+enum ExportFormat {
+  PDF
+  DOCX
+  EPUB
+  HTML
+  MARKDOWN
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String
+  imageUrl     String?
+  avatarColor  String?      @default("#6b7280")
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  memberships  BookMember[]
+  ownedBooks   Book[]       @relation("BookOwner")
+  notes        Note[]
+  sessions     Session[]
+  exports      ExportJob[]  @relation("ExportRequestedBy")
+  noteComments NoteComment[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Book {
+  id          String        @id @default(cuid())
+  ownerId     String
+  title       String
+  subtitle    String?
+  description String?
+  language    String        @default("de")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  owner       User          @relation("BookOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     BookMember[]
+  document    BookDocument?
+  chapters    Chapter[]
+  notes       Note[]
+  exportJobs  ExportJob[]
+  aiReports   AiReport[]
+}
+
+model BookMember {
+  id        String   @id @default(cuid())
+  bookId    String
+  userId    String
+  role      BookRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, userId])
+}
+
+model BookDocument {
+  id             String   @id @default(cuid())
+  bookId         String   @unique
+  contentJson    Json
+  plainTextCache String?
+  version        Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  book           Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model Chapter {
+  id              String       @id @default(cuid())
+  bookId          String
+  title           String
+  description     String?
+  orderIndex      Int
+  type            ChapterType  @default(PLANNED)
+  editorNodeId    String?
+  status          ChapterStatus @default(PLANNED)
+  targetWordCount Int?
+  aiSummary       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  book            Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  notes           Note[]
+  aiReports       AiReport[]
+}
+
+model Note {
+  id                   String     @id @default(cuid())
+  bookId               String
+  chapterId            String?
+  authorId             String
+  selectedTextSnapshot String
+  body                 String
+  anchorId             String?
+  anchorFrom           Int?
+  anchorTo             Int?
+  status               NoteStatus @default(OPEN)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  book                 Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter              Chapter?   @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  author               User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments             NoteComment[]
+}
+
+model NoteComment {
+  id        String   @id @default(cuid())
+  noteId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model ExportJob {
+  id            String       @id @default(cuid())
+  bookId        String
+  requestedById String
+  format        ExportFormat
+  status        ExportStatus @default(PENDING)
+  filePath      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  book          Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  requestedBy   User         @relation("ExportRequestedBy", fields: [requestedById], references: [id], onDelete: Cascade)
+}
+
+model AiReport {
+  id         String   @id @default(cuid())
+  bookId     String
+  chapterId  String?
+  type       String
+  status     String
+  resultJson Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter    Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+}
