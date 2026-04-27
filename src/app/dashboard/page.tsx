@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth/guards";
 import { prisma } from "@/lib/db/prisma";
-import { createBook } from "@/server/actions/books";
+import { createBook, deleteBook, renameBook } from "@/server/actions/books";
 import { UserAvatar } from "@/components/ui/UserAvatar";
 
 export default async function DashboardPage() {
@@ -40,7 +40,20 @@ export default async function DashboardPage() {
       <ul className="space-y-3">
         {books.map((book) => (
           <li key={book.id} className="rounded border border-zinc-200 bg-white p-4">
-            <Link href={`/books/${book.id}`} className="text-lg">{book.title}</Link>
+            <div className="flex items-center justify-between gap-3">
+              <Link href={`/books/${book.id}`} className="text-lg">{book.title}</Link>
+              <div className="flex gap-2">
+                <form action={renameBook} className="flex gap-2">
+                  <input type="hidden" name="bookId" value={book.id} />
+                  <input name="title" defaultValue={book.title} className="input h-8 w-44 text-xs" />
+                  <button className="btn h-8 py-1 text-xs">Umbenennen</button>
+                </form>
+                <form action={deleteBook}>
+                  <input type="hidden" name="bookId" value={book.id} />
+                  <button className="btn h-8 py-1 text-xs">Löschen</button>
+                </form>
+              </div>
+            </div>
           </li>
         ))}
       </ul>
