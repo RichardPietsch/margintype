@@ -32,7 +32,7 @@ export function BookEditor({
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const wheelBufferRef = useRef(0);
+  const pageViewportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -64,8 +64,18 @@ export function BookEditor({
   useEffect(() => {
     if (!editor || !canEdit) return;
 
-    const onUpdate = () => {
+    const onUpdate = ({ transaction }: { transaction: { getMeta: (key: string) => unknown } }) => {
       recalcPages(editor);
+
+      if (transaction.getMeta("paste")) {
+        const view = pageViewportRef.current;
+        if (view) {
+          const pages = Math.max(1, Math.ceil(editor.view.dom.scrollHeight / A5_PAGE_HEIGHT));
+          const lastTop = (pages - 1) * A5_PAGE_HEIGHT;
+          view.scrollTo({ top: lastTop });
+          setCurrentPage(pages);
+        }
+      }
 
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
@@ -92,6 +102,15 @@ export function BookEditor({
   }, [editor]);
 
   useEffect(() => {
+    const view = pageViewportRef.current;
+    if (!view) return;
+    const top = (currentPage - 1) * A5_PAGE_HEIGHT;
+    if (Math.abs(view.scrollTop - top) > 2) {
+      view.scrollTo({ top });
+    }
+  }, [currentPage]);
+
+  useEffect(() => {
     onPageChange(currentPage, totalPages);
   }, [currentPage, onPageChange, totalPages]);
 
@@ -107,20 +126,27 @@ export function BookEditor({
     );
   }
 
-  const pageOffset = (currentPage - 1) * A5_PAGE_HEIGHT;
-
   return (
     <section className="flex-1 p-8">
       <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
-        <div className="h-[794px] overflow-hidden" onWheelCapture={(e) => {
+        <div
+          ref={pageViewportRef}
+          className="h-[794px] overflow-y-auto"
+          onScroll={(e) => {
+            const top = e.currentTarget.scrollTop;
+            const page = Math.max(1, Math.min(totalPages, Math.round(top / A5_PAGE_HEIGHT) + 1));
+            setCurrentPage(page);
+          }}
+          onWheelCapture={(e) => {
           e.preventDefault();
-          wheelBufferRef.current += e.deltaY;
-          if (Math.abs(wheelBufferRef.current) < 80) return;
-          if (wheelBufferRef.current > 0) setCurrentPage((p) => Math.min(totalPages, p + 1));
-          else setCurrentPage((p) => Math.max(1, p - 1));
-          wheelBufferRef.current = 0;
-        }}>
-          <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript transition-transform duration-150">
+          setCurrentPage((prev) => {
+            if (e.deltaY > 0) return Math.min(totalPages, prev + 1);
+            if (e.deltaY < 0) return Math.max(1, prev - 1);
+            return prev;
+          });
+        }}
+        >
+          <div className="prose-manuscript">
             <EditorContent editor={editor} />
           </div>
         </div>
