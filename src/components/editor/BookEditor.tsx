@@ -12,8 +12,8 @@ import { createOrUpdateAutoChapter } from "@/server/actions/chapters";
 import { EditorToolbar } from "./EditorToolbar";
 
 const BASELINE_PX = 24;
-const PAGE_LINES = 35;
-const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 840px => exact baseline multiple, no half-lines
+const PAGE_LINES = 30;
+const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px text area => 30 lines
 
 export function BookEditor({
   bookId,
@@ -155,8 +155,12 @@ export function BookEditor({
               }, 120);
             }}
           >
-            <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
-              <EditorContent editor={editor} />
+            <div className="flex h-full items-center">
+              <div className="h-[720px] w-full overflow-hidden">
+                <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
+                  <EditorContent editor={editor} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
