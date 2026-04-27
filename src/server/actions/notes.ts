@@ -11,6 +11,8 @@ export async function createNote(input: {
   selectedTextSnapshot: string;
   body: string;
   anchorId?: string;
+  anchorFrom?: number;
+  anchorTo?: number;
 }) {
   const user = await requireUser();
   const role = await getBookRole(input.bookId, user.id);
@@ -24,7 +26,9 @@ export async function createNote(input: {
       authorId: user.id,
       selectedTextSnapshot: input.selectedTextSnapshot,
       body: input.body,
-      anchorId: input.anchorId
+      anchorId: input.anchorId,
+      anchorFrom: input.anchorFrom,
+      anchorTo: input.anchorTo
     }
   });
 

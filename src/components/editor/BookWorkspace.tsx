@@ -19,6 +19,8 @@ type Note = {
   id: string;
   selectedTextSnapshot: string;
   body: string;
+  anchorFrom?: number | null;
+  anchorTo?: number | null;
   author: { name: string; imageUrl?: string | null; avatarColor?: string | null };
   comments: Array<{
     id: string;
@@ -47,13 +49,24 @@ export function BookWorkspace({
   canAnnotate: boolean;
 }) {
   const [editingChapterId, setEditingChapterId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const chapter = useMemo(() => chapters.find((c) => c.id === editingChapterId) ?? null, [chapters, editingChapterId]);
 
   return (
-    <div className="flex h-screen overflow-y-auto">
+    <div className="flex h-screen overflow-hidden">
       <ChapterSidebar bookId={bookId} title={bookTitle} chapters={chapters} canManage={canManage} onEditChapter={setEditingChapterId} />
-      <BookEditor bookId={bookId} contentJson={contentJson} canEdit={canEdit} canAnnotate={canAnnotate} />
-      <NotesMargin notes={notes} />
+      <BookEditor
+        bookId={bookId}
+        contentJson={contentJson}
+        canEdit={canEdit}
+        canAnnotate={canAnnotate}
+        onPageChange={(page, pages) => {
+          setCurrentPage(page);
+          setTotalPages(pages);
+        }}
+      />
+      <NotesMargin notes={notes} currentPage={currentPage} totalPages={totalPages} />
       <ChapterDetailsModal chapter={chapter} onClose={() => setEditingChapterId(null)} />
     </div>
   );

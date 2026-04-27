@@ -5,11 +5,13 @@ import type { Editor } from "@tiptap/react";
 export function EditorToolbar({
   editor,
   onAddNote,
+  onFullPage,
   canEdit,
   canAddNote
 }: {
   editor: Editor | null;
   onAddNote: () => void;
+  onFullPage: () => void;
   canEdit: boolean;
   canAddNote: boolean;
 }) {
@@ -21,6 +23,7 @@ export function EditorToolbar({
     <div className="sticky bottom-4 mx-auto mt-6 flex w-fit items-center gap-2 rounded-full border border-zinc-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur">
       <button className={itemClass} onClick={() => editor.chain().focus().setParagraph().run()} disabled={!canEdit}>P</button>
       <button className={itemClass} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} disabled={!canEdit}>H1</button>
+      <button className={itemClass} onClick={onFullPage} disabled={!canEdit} title="Full Page">□</button>
       <button className={itemClass} onClick={() => editor.chain().focus().toggleBold().run()} disabled={!canEdit}><strong>B</strong></button>
       <button className={itemClass} onClick={() => editor.chain().focus().toggleItalic().run()} disabled={!canEdit}><em>I</em></button>
       <button className={itemClass} onClick={onAddNote} disabled={!canAddNote}>Notiz +</button>

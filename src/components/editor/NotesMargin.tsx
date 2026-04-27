@@ -8,6 +8,8 @@ type Note = {
   id: string;
   selectedTextSnapshot: string;
   body: string;
+  anchorFrom?: number | null;
+  anchorTo?: number | null;
   author: { name: string; imageUrl?: string | null; avatarColor?: string | null };
   comments: Array<{
     id: string;
@@ -16,17 +18,29 @@ type Note = {
   }>;
 };
 
-export function NotesMargin({ notes }: { notes: Note[] }) {
+export function NotesMargin({ notes, currentPage, totalPages }: { notes: Note[]; currentPage: number; totalPages: number }) {
   const [pending, startTransition] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const pageSize = 1800;
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageEnd = currentPage * pageSize;
+  const notesOnPage = notes.filter((note) => {
+    const at = note.anchorFrom ?? 0;
+    return at >= pageStart && at < pageEnd;
+  });
 
   return (
-    <aside className="w-80 border-l border-zinc-200 bg-zinc-50/40 p-4">
-      <h3 className="mb-3 text-sm font-medium">Notizen</h3>
+    <aside className="w-80 border-l border-zinc-200 bg-zinc-50/40 p-4 sticky top-0 h-screen overflow-y-auto">
+      <h3 className="mb-1 text-sm font-medium">Notizen</h3>
+      <p className="mb-3 text-xs text-zinc-500">Seite {currentPage} / {totalPages}</p>
       <div className="space-y-3">
-        {notes.map((note) => (
-          <div key={note.id} className="rounded-md border border-amber-200 bg-amber-50 p-3">
+        {notesOnPage.map((note) => (
+          <div
+            key={note.id}
+            className="rounded-md border border-amber-200 bg-amber-50 p-3"
+            style={{ marginTop: `${Math.max(0, (((note.anchorFrom ?? pageStart) - pageStart) / pageSize) * 280)}px` }}
+          >
             <div className="mb-2 flex items-center gap-2">
               <UserAvatar name={note.author.name} imageUrl={note.author.imageUrl} color={note.author.avatarColor} size={20} />
               <p className="text-[11px] text-zinc-500">„{note.selectedTextSnapshot}“</p>
@@ -82,6 +96,7 @@ export function NotesMargin({ notes }: { notes: Note[] }) {
             </div>
           </div>
         ))}
+        {notesOnPage.length === 0 && <p className="text-xs text-zinc-500">Keine Notizen auf dieser Seite.</p>}
       </div>
     </aside>
   );

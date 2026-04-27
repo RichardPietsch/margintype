@@ -145,6 +145,8 @@ model Note {
   selectedTextSnapshot String
   body                 String
   anchorId             String?
+  anchorFrom           Int?
+  anchorTo             Int?
   status               NoteStatus @default(OPEN)
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
