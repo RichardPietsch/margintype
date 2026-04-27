@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-background text-ink antialiased;
+}
+
+.input {
+  @apply w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none ring-0 transition focus:border-zinc-400;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm transition hover:bg-zinc-50;
+}
+
+.btn-primary {
+  @apply border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800;
+}
+
+.prose-manuscript .ProseMirror {
+  min-height: 736px;
+  outline: none;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 32px;
+  letter-spacing: 0.01em;
+  color: #222;
+}
+
+.prose-manuscript .ProseMirror h1,
+.prose-manuscript .ProseMirror h2 {
+  margin: 32px 0;
+  font-weight: 600;
+  line-height: 64px;
+}
+
+.prose-manuscript .ProseMirror h1[data-full-page="true"] {
+  min-height: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 0;
+}
+
+.prose-manuscript .ProseMirror p {
+  margin: 0;
+}
+
+.page-separator {
+  position: relative;
+  margin: 4rem 0;
+  border-top: 1px dashed #ddd;
+}
+
+.page-separator span {
+  position: absolute;
+  right: 0;
+  top: 0.5rem;
+  font-size: 12px;
+  color: #8d8d8d;
+}
