@@ -13,6 +13,11 @@ import { VisualPage } from "./VisualPage";
 export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { bookId: string; contentJson: any; canEdit: boolean; canAnnotate: boolean }) {
   const [pending, startTransition] = useTransition();
   const [selectionText, setSelectionText] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const editor = useEditor({
     editable: canEdit,
@@ -42,6 +47,16 @@ export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { book
   }, [bookId, canEdit, editor, editor?.state.doc.content.size]);
 
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
+
+  if (!mounted) {
+    return (
+      <section className="flex-1 overflow-y-auto p-8">
+        <div className="mx-auto max-w-4xl rounded border border-zinc-200 bg-paper px-20 py-16 shadow-paper prose-manuscript">
+          <p className="text-sm text-zinc-400">Editor wird geladen …</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="flex-1 overflow-y-auto p-8">

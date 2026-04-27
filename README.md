@@ -29,6 +29,7 @@ Self-hosted, minimalist writing app foundation for book authors.
    npm run dev
    ```
    `npm run dev` now runs `prisma generate` first, so `@prisma/client` is always initialized before Next.js starts.
+   It also runs an optional initial-admin bootstrap from `.env` (`INIT_ADMIN_*`).
 
 ## Setup (Docker)
 ```bash
@@ -40,6 +41,17 @@ docker compose exec app npx prisma migrate deploy
 ```
 The compose app command also runs `npx prisma generate` before starting the dev server to prevent first-boot Prisma client errors.
 If you customize Docker build steps, keep `prisma/schema.prisma` available before any `npm install`/`postinstall` that triggers `prisma generate`.
+
+## Optional initial user (from `.env`)
+Set these variables in `.env`:
+
+```env
+INIT_ADMIN_EMAIL=admin@example.com
+INIT_ADMIN_PASSWORD=changeme
+INIT_ADMIN_NAME=Initial Admin
+```
+
+On startup (`npm run dev`), if the user does not exist yet, it will be created automatically. Existing users are not overwritten.
 
 ## Current foundation included
 - Registration/login/logout/session handling
