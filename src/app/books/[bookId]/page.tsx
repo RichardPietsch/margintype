@@ -23,6 +23,10 @@ export default async function BookPage({ params }: { params: Promise<{ bookId: s
   const role = await getBookRole(bookId, user.id);
   if (!role) notFound();
 
+  const initialContentJson = JSON.parse(
+    JSON.stringify(book.document?.contentJson ?? { type: "doc", content: [{ type: "paragraph" }] })
+  );
+
   return (
     <>
       <div className="absolute right-4 top-4 z-10"><Link href={`/books/${bookId}/settings`} className="btn text-xs">Projekteinstellungen</Link></div>
@@ -31,7 +35,7 @@ export default async function BookPage({ params }: { params: Promise<{ bookId: s
         bookTitle={book.title}
         chapters={book.chapters}
         notes={book.notes}
-        contentJson={book.document?.contentJson ?? { type: "doc", content: [{ type: "paragraph" }] }}
+        contentJson={initialContentJson}
         canEdit={canEditManuscript(role)}
         canManage={canManageChapters(role)}
         canAnnotate={canCreateNote(role)}
