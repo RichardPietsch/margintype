@@ -124,9 +124,9 @@ export function BookEditor({
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
 
   if (!mounted) {
-    return (
+      return (
       <section className="flex-1 p-8">
-        <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper prose-manuscript">
+        <div className="mx-auto w-[640px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper prose-manuscript">
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
         </div>
       </section>
@@ -137,62 +137,64 @@ export function BookEditor({
 
   return (
     <section className="flex-1 p-8">
-      <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
-        <div
-          className="h-[720px] overflow-hidden bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,rgba(0,0,0,0.035)_23px,rgba(0,0,0,0.035)_24px)]"
-          onWheelCapture={(e) => {
-            e.preventDefault();
-            if (wheelLockRef.current) return;
-            wheelLockRef.current = true;
-            setCurrentPage((prev) => {
-              if (e.deltaY > 0) return Math.min(totalPages, prev + 1);
-              if (e.deltaY < 0) return Math.max(1, prev - 1);
-              return prev;
-            });
-            window.setTimeout(() => {
-              wheelLockRef.current = false;
-            }, 120);
-          }}
-        >
-          <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
-            <EditorContent editor={editor} />
+      <div className="relative mx-auto w-[700px]">
+        <div className="mx-auto w-[640px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
+          <div
+            className="h-[720px] overflow-hidden bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,rgba(0,0,0,0.035)_23px,rgba(0,0,0,0.035)_24px)]"
+            onWheelCapture={(e) => {
+              e.preventDefault();
+              if (wheelLockRef.current) return;
+              wheelLockRef.current = true;
+              setCurrentPage((prev) => {
+                if (e.deltaY > 0) return Math.min(totalPages, prev + 1);
+                if (e.deltaY < 0) return Math.max(1, prev - 1);
+                return prev;
+              });
+              window.setTimeout(() => {
+                wheelLockRef.current = false;
+              }, 120);
+            }}
+          >
+            <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
+              <EditorContent editor={editor} />
+            </div>
           </div>
         </div>
+        <EditorToolbar
+          editor={editor}
+          canEdit={canEdit}
+          canAddNote={canAnnotate && selectionText.trim().length > 0}
+          onFullPage={() => {
+            if (!editor || !canEdit) return;
+            const title = selectionText.trim() || "Kapitel";
+            const nodeId = `auto-${title.toLowerCase().replace(/\s+/g, "-").slice(0, 64)}`;
+            editor.chain().focus().toggleHeading({ level: 1 }).updateAttributes("heading", { "data-full-page": "true" }).run();
+            startTransition(async () => {
+              await createOrUpdateAutoChapter({ bookId, title, editorNodeId: nodeId });
+            });
+          }}
+          onAddNote={() => {
+            if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
+            const body = window.prompt("Notiz");
+            if (!body) return;
+            editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
+            startTransition(async () => {
+              await createNote({
+                bookId,
+                selectedTextSnapshot: selectionText,
+                body,
+                anchorFrom: selectionRange.from,
+                anchorTo: selectionRange.to,
+                anchorId: `a-${selectionRange.from}-${selectionRange.to}`
+              });
+            });
+          }}
+        />
       </div>
-      <div className="mx-auto mt-2 flex w-[560px] justify-between text-xs text-zinc-500">
+      <div className="mx-auto mt-2 flex w-[640px] justify-between text-xs text-zinc-500">
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>
-      <EditorToolbar
-        editor={editor}
-        canEdit={canEdit}
-        canAddNote={canAnnotate && selectionText.trim().length > 0}
-        onFullPage={() => {
-          if (!editor || !canEdit) return;
-          const title = selectionText.trim() || "Kapitel";
-          const nodeId = `auto-${title.toLowerCase().replace(/\s+/g, "-").slice(0, 64)}`;
-          editor.chain().focus().toggleHeading({ level: 1 }).updateAttributes("heading", { "data-full-page": "true" }).run();
-          startTransition(async () => {
-            await createOrUpdateAutoChapter({ bookId, title, editorNodeId: nodeId });
-          });
-        }}
-        onAddNote={() => {
-          if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
-          const body = window.prompt("Notiz");
-          if (!body) return;
-          editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
-          startTransition(async () => {
-            await createNote({
-              bookId,
-              selectedTextSnapshot: selectionText,
-              body,
-              anchorFrom: selectionRange.from,
-              anchorTo: selectionRange.to,
-              anchorId: `a-${selectionRange.from}-${selectionRange.to}`
-            });
-          });
-        }}
-      />
     </section>
   );
 }
