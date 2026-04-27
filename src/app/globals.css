@@ -23,24 +23,24 @@ body {
 }
 
 .prose-manuscript .ProseMirror {
-  min-height: 736px;
+  min-height: 720px;
   outline: none;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 18px;
-  line-height: 32px;
+  font-size: 15px;
+  line-height: 24px;
   letter-spacing: 0.01em;
   color: #222;
 }
 
 .prose-manuscript .ProseMirror h1,
 .prose-manuscript .ProseMirror h2 {
-  margin: 32px 0;
+  margin: 24px 0;
   font-weight: 600;
-  line-height: 64px;
+  line-height: 48px;
 }
 
 .prose-manuscript .ProseMirror h1[data-full-page="true"] {
-  min-height: 640px;
+  min-height: 600px;
   display: flex;
   align-items: center;
   justify-content: center;
