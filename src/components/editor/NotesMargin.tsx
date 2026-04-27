@@ -70,7 +70,22 @@ export function NotesMargin({ notes, currentPage, totalPages }: { notes: Note[];
             <p className="mt-2 text-[11px] text-zinc-500">von {note.author.name}</p>
             <div className="mt-2 flex gap-2 text-xs">
               <button className="btn py-1 text-xs" onClick={() => { setEditingId(note.id); setDraft(note.body); }}>Bearbeiten</button>
-              <button className="btn py-1 text-xs" disabled={pending} onClick={() => startTransition(async () => await deleteNote(note.id))}>Löschen</button>
+              <button
+                className="btn py-1 text-xs"
+                disabled={pending}
+                onClick={() =>
+                  startTransition(async () => {
+                    await deleteNote(note.id);
+                    window.dispatchEvent(
+                      new CustomEvent("note-deleted", {
+                        detail: { from: note.anchorFrom ?? null, to: note.anchorTo ?? null }
+                      })
+                    );
+                  })
+                }
+              >
+                Löschen
+              </button>
             </div>
             <div className="mt-3 space-y-2 border-t border-amber-200 pt-2">
               {note.comments.map((comment) => (

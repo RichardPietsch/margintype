@@ -108,6 +108,19 @@ export function BookEditor({
     onPageChange(currentPage, totalPages);
   }, [currentPage, onPageChange, totalPages]);
 
+  useEffect(() => {
+    if (!editor) return;
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ from: number | null; to: number | null }>;
+      const from = custom.detail?.from;
+      const to = custom.detail?.to;
+      if (!from || !to) return;
+      editor.chain().focus().setTextSelection({ from, to }).unsetHighlight().run();
+    };
+    window.addEventListener("note-deleted", handler as EventListener);
+    return () => window.removeEventListener("note-deleted", handler as EventListener);
+  }, [editor]);
+
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
 
   if (!mounted) {
