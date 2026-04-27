@@ -32,7 +32,7 @@ export function BookEditor({
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pageViewportRef = useRef<HTMLDivElement | null>(null);
+  const wheelLockRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -47,6 +47,10 @@ export function BookEditor({
       // TODO: Persist explicit chapter/note anchors as hidden marks in document JSON.
     ],
     content: contentJson,
+    editorProps: {
+      // Keep page position stable; we flip pages manually instead of native scroll-to-caret behavior.
+      handleScrollToSelection: () => true
+    },
     onSelectionUpdate: ({ editor }) => {
       setSelectionText(editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to));
       setSelectionRange({ from: editor.state.selection.from, to: editor.state.selection.to });
@@ -68,13 +72,8 @@ export function BookEditor({
       recalcPages(editor);
 
       if (transaction.getMeta("paste")) {
-        const view = pageViewportRef.current;
-        if (view) {
-          const pages = Math.max(1, Math.ceil(editor.view.dom.scrollHeight / A5_PAGE_HEIGHT));
-          const lastTop = (pages - 1) * A5_PAGE_HEIGHT;
-          view.scrollTo({ top: lastTop });
-          setCurrentPage(pages);
-        }
+        const pages = Math.max(1, Math.ceil(editor.view.dom.scrollHeight / A5_PAGE_HEIGHT));
+        setCurrentPage(pages);
       }
 
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -102,15 +101,6 @@ export function BookEditor({
   }, [editor]);
 
   useEffect(() => {
-    const view = pageViewportRef.current;
-    if (!view) return;
-    const top = (currentPage - 1) * A5_PAGE_HEIGHT;
-    if (Math.abs(view.scrollTop - top) > 2) {
-      view.scrollTo({ top });
-    }
-  }, [currentPage]);
-
-  useEffect(() => {
     onPageChange(currentPage, totalPages);
   }, [currentPage, onPageChange, totalPages]);
 
@@ -126,27 +116,28 @@ export function BookEditor({
     );
   }
 
+  const pageOffset = (currentPage - 1) * A5_PAGE_HEIGHT;
+
   return (
     <section className="flex-1 p-8">
       <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
         <div
-          ref={pageViewportRef}
-          className="h-[794px] overflow-y-auto"
-          onScroll={(e) => {
-            const top = e.currentTarget.scrollTop;
-            const page = Math.max(1, Math.min(totalPages, Math.round(top / A5_PAGE_HEIGHT) + 1));
-            setCurrentPage(page);
-          }}
+          className="h-[794px] overflow-hidden"
           onWheelCapture={(e) => {
-          e.preventDefault();
-          setCurrentPage((prev) => {
-            if (e.deltaY > 0) return Math.min(totalPages, prev + 1);
-            if (e.deltaY < 0) return Math.max(1, prev - 1);
-            return prev;
-          });
-        }}
+            e.preventDefault();
+            if (wheelLockRef.current) return;
+            wheelLockRef.current = true;
+            setCurrentPage((prev) => {
+              if (e.deltaY > 0) return Math.min(totalPages, prev + 1);
+              if (e.deltaY < 0) return Math.max(1, prev - 1);
+              return prev;
+            });
+            window.setTimeout(() => {
+              wheelLockRef.current = false;
+            }, 120);
+          }}
         >
-          <div className="prose-manuscript">
+          <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript transition-transform duration-150">
             <EditorContent editor={editor} />
           </div>
         </div>
