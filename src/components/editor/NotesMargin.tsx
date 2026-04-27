@@ -25,10 +25,12 @@ export function NotesMargin({ notes, currentPage, totalPages }: { notes: Note[];
   const pageSize = 1800;
   const pageStart = (currentPage - 1) * pageSize;
   const pageEnd = currentPage * pageSize;
-  const notesOnPage = notes.filter((note) => {
-    const at = note.anchorFrom ?? 0;
-    return at >= pageStart && at < pageEnd;
-  });
+  const notesOnPage = notes
+    .filter((note) => {
+      const at = note.anchorFrom ?? 0;
+      return at >= pageStart && at < pageEnd;
+    })
+    .sort((a, b) => (a.anchorFrom ?? 0) - (b.anchorFrom ?? 0));
 
   return (
     <aside className="w-80 border-l border-zinc-200 bg-zinc-50/40 p-4 sticky top-0 h-screen overflow-y-auto">

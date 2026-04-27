@@ -12,8 +12,8 @@ import { createOrUpdateAutoChapter } from "@/server/actions/chapters";
 import { EditorToolbar } from "./EditorToolbar";
 
 const BASELINE_PX = 24;
-const PAGE_LINES = 30;
-const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px => exact baseline multiple, no half-lines
+const PAGE_LINES = 35;
+const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 840px => exact baseline multiple, no half-lines
 
 export function BookEditor({
   bookId,
@@ -126,7 +126,7 @@ export function BookEditor({
   if (!mounted) {
       return (
       <section className="flex-1 p-8">
-        <div className="mx-auto w-[640px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper prose-manuscript">
+        <div className="mx-auto w-[720px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper prose-manuscript">
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
         </div>
       </section>
@@ -137,10 +137,10 @@ export function BookEditor({
 
   return (
     <section className="flex-1 p-8">
-      <div className="relative mx-auto w-[700px]">
-        <div className="mx-auto w-[640px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
+      <div className="relative mx-auto w-[780px]">
+        <div className="mx-auto w-[720px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
           <div
-            className="h-[720px] overflow-hidden bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,rgba(0,0,0,0.035)_23px,rgba(0,0,0,0.035)_24px)]"
+            className="h-[840px] overflow-hidden bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,rgba(0,0,0,0.035)_23px,rgba(0,0,0,0.035)_24px)]"
             onWheelCapture={(e) => {
               e.preventDefault();
               if (wheelLockRef.current) return;
@@ -191,7 +191,7 @@ export function BookEditor({
           }}
         />
       </div>
-      <div className="mx-auto mt-2 flex w-[640px] justify-between text-xs text-zinc-500">
+      <div className="mx-auto mt-2 flex w-[720px] justify-between text-xs text-zinc-500">
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>

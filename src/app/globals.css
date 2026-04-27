@@ -23,7 +23,7 @@ body {
 }
 
 .prose-manuscript .ProseMirror {
-  min-height: 720px;
+  min-height: 840px;
   outline: none;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 15px;
@@ -40,7 +40,7 @@ body {
 }
 
 .prose-manuscript .ProseMirror h1[data-full-page="true"] {
-  min-height: 600px;
+  min-height: 720px;
   display: flex;
   align-items: center;
   justify-content: center;
