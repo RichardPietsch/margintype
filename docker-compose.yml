@@ -12,7 +12,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    command: sh -c "npm install && npx prisma generate && npm run dev"
+    command: sh -c "npm install && npx prisma generate && until npx prisma migrate deploy; do echo 'warte auf Datenbank/Migration...'; sleep 2; done && npm run dev"
 
   db:
     image: postgres:16-alpine

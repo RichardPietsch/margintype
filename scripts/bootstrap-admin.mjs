@@ -13,7 +13,16 @@ if (!email || !password) {
 const prisma = new PrismaClient();
 
 try {
-  const existing = await prisma.user.findUnique({ where: { email } });
+  let existing = null;
+  try {
+    existing = await prisma.user.findUnique({ where: { email } });
+  } catch (error) {
+    if (error?.code === 'P2021' || error?.code === 'P1001') {
+      console.log('[bootstrap-admin] skipped (database not migrated or not reachable yet)');
+      process.exit(0);
+    }
+    throw error;
+  }
 
   if (existing) {
     console.log(`[bootstrap-admin] user already exists: ${email}`);

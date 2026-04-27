@@ -35,11 +35,7 @@ Self-hosted, minimalist writing app foundation for book authors.
 ```bash
 docker compose up --build
 ```
-Then run migrations inside app container:
-```bash
-docker compose exec app npx prisma migrate deploy
-```
-The compose app command also runs `npx prisma generate` before starting the dev server to prevent first-boot Prisma client errors.
+The compose app command runs `prisma generate`, waits for DB readiness, and applies `prisma migrate deploy` before starting the dev server.
 If you customize Docker build steps, keep `prisma/schema.prisma` available before any `npm install`/`postinstall` that triggers `prisma generate`.
 
 ## Optional initial user (from `.env`)
@@ -52,6 +48,7 @@ INIT_ADMIN_NAME=Initial Admin
 ```
 
 On startup (`npm run dev`), if the user does not exist yet, it will be created automatically. Existing users are not overwritten.
+If tables are not migrated yet (or DB is still booting), bootstrap skips without crashing.
 
 ## Current foundation included
 - Registration/login/logout/session handling
