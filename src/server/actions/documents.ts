@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { requireUser } from "@/lib/auth/guards";
 import { canEditManuscript, getBookRole } from "@/lib/permissions/books";
@@ -9,9 +10,9 @@ export async function saveDocument(bookId: string, contentJsonString: string, pl
   const role = await getBookRole(bookId, user.id);
   if (!canEditManuscript(role)) throw new Error("Nur Autor:innen dürfen das Manuskript bearbeiten");
 
-  let contentJson: unknown = { type: "doc", content: [{ type: "paragraph" }] };
+  let contentJson: Prisma.InputJsonValue = { type: "doc", content: [{ type: "paragraph" }] };
   try {
-    contentJson = JSON.parse(contentJsonString);
+    contentJson = JSON.parse(contentJsonString) as Prisma.InputJsonValue;
   } catch {
     throw new Error("Ungültiges Dokumentformat");
   }

@@ -19,7 +19,12 @@ type Note = {
   id: string;
   selectedTextSnapshot: string;
   body: string;
-  author: { name: string };
+  author: { name: string; imageUrl?: string | null; avatarColor?: string | null };
+  comments: Array<{
+    id: string;
+    body: string;
+    author: { name: string; imageUrl?: string | null; avatarColor?: string | null };
+  }>;
 };
 
 export function BookWorkspace({
@@ -45,7 +50,7 @@ export function BookWorkspace({
   const chapter = useMemo(() => chapters.find((c) => c.id === editingChapterId) ?? null, [chapters, editingChapterId]);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-y-auto">
       <ChapterSidebar bookId={bookId} title={bookTitle} chapters={chapters} canManage={canManage} onEditChapter={setEditingChapterId} />
       <BookEditor bookId={bookId} contentJson={contentJson} canEdit={canEdit} canAnnotate={canAnnotate} />
       <NotesMargin notes={notes} />

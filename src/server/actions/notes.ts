@@ -30,3 +30,38 @@ export async function createNote(input: {
 
   revalidatePath(`/books/${input.bookId}`);
 }
+
+export async function updateNote(input: { noteId: string; body: string }) {
+  const user = await requireUser();
+  const note = await prisma.note.findUnique({ where: { id: input.noteId } });
+  if (!note) throw new Error("Notiz nicht gefunden");
+  if (note.authorId !== user.id) throw new Error("Nur Autor:in darf die Notiz bearbeiten");
+
+  await prisma.note.update({ where: { id: note.id }, data: { body: input.body } });
+  revalidatePath(`/books/${note.bookId}`);
+}
+
+export async function deleteNote(noteId: string) {
+  const user = await requireUser();
+  const note = await prisma.note.findUnique({ where: { id: noteId } });
+  if (!note) throw new Error("Notiz nicht gefunden");
+  if (note.authorId !== user.id) throw new Error("Nur Autor:in darf die Notiz löschen");
+
+  await prisma.note.delete({ where: { id: note.id } });
+  revalidatePath(`/books/${note.bookId}`);
+}
+
+export async function addNoteComment(input: { noteId: string; body: string }) {
+  const user = await requireUser();
+  const note = await prisma.note.findUnique({ where: { id: input.noteId } });
+  if (!note) throw new Error("Notiz nicht gefunden");
+
+  await prisma.noteComment.create({
+    data: {
+      noteId: note.id,
+      authorId: user.id,
+      body: input.body
+    }
+  });
+  revalidatePath(`/books/${note.bookId}`);
+}

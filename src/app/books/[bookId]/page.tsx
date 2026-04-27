@@ -13,7 +13,16 @@ export default async function BookPage({ params }: { params: Promise<{ bookId: s
     where: { id: bookId },
     include: {
       chapters: { orderBy: { orderIndex: "asc" } },
-      notes: { include: { author: { select: { name: true } } }, orderBy: { createdAt: "desc" } },
+      notes: {
+        include: {
+          author: { select: { name: true, imageUrl: true, avatarColor: true } },
+          comments: {
+            include: { author: { select: { name: true, imageUrl: true, avatarColor: true } } },
+            orderBy: { createdAt: "asc" }
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      },
       document: true
     }
   });

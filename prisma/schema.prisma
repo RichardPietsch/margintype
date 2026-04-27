@@ -49,6 +49,8 @@ model User {
   id           String       @id @default(cuid())
   email        String       @unique
   name         String
+  imageUrl     String?
+  avatarColor  String?      @default("#6b7280")
   passwordHash String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -58,6 +60,7 @@ model User {
   notes        Note[]
   sessions     Session[]
   exports      ExportJob[]  @relation("ExportRequestedBy")
+  noteComments NoteComment[]
 }
 
 model Session {
@@ -149,6 +152,19 @@ model Note {
   book                 Book       @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapter              Chapter?   @relation(fields: [chapterId], references: [id], onDelete: SetNull)
   author               User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments             NoteComment[]
+}
+
+model NoteComment {
+  id        String   @id @default(cuid())
+  noteId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model ExportJob {

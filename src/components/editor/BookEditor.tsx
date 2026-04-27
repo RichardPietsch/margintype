@@ -4,7 +4,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { saveDocument } from "@/server/actions/documents";
 import { createNote } from "@/server/actions/notes";
 import { EditorToolbar } from "./EditorToolbar";
@@ -14,6 +14,9 @@ export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { book
   const [pending, startTransition] = useTransition();
   const [selectionText, setSelectionText] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [pages, setPages] = useState(1);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const A5_PAGE_HEIGHT = 794; // approx px at 96dpi
 
   useEffect(() => {
     setMounted(true);
@@ -22,7 +25,7 @@ export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { book
   const editor = useEditor({
     editable: canEdit,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2] } }),
+      StarterKit.configure({ heading: { levels: [1] } }),
       Placeholder.configure({ placeholder: "Beginne mit deinem Manuskript …" }),
       CharacterCount
       // TODO: Add Yjs/Hocuspocus extension for realtime collaboration.
@@ -36,23 +39,42 @@ export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { book
 
   useEffect(() => {
     if (!editor || !canEdit) return;
-    const timer = setTimeout(() => {
-      const text = editor.getText();
-      const jsonString = JSON.stringify(editor.getJSON());
-      startTransition(async () => {
-        await saveDocument(bookId, jsonString, text);
-      });
-    }, 900);
 
-    return () => clearTimeout(timer);
-  }, [bookId, canEdit, editor, editor?.state.doc.content.size]);
+    const onUpdate = () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
+        const text = editor.getText();
+        const jsonString = JSON.stringify(editor.getJSON());
+        startTransition(async () => {
+          await saveDocument(bookId, jsonString, text);
+        });
+      }, 700);
+    };
+
+    editor.on("update", onUpdate);
+    return () => {
+      editor.off("update", onUpdate);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [bookId, canEdit, editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const recalcPages = () => {
+      const height = editor.view.dom.clientHeight;
+      setPages(Math.max(1, Math.ceil(height / A5_PAGE_HEIGHT)));
+    };
+    recalcPages();
+    const interval = setInterval(recalcPages, 600);
+    return () => clearInterval(interval);
+  }, [editor]);
 
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
 
   if (!mounted) {
     return (
-      <section className="flex-1 overflow-y-auto p-8">
-        <div className="mx-auto max-w-4xl rounded border border-zinc-200 bg-paper px-20 py-16 shadow-paper prose-manuscript">
+      <section className="flex-1 p-8">
+        <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper prose-manuscript">
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
         </div>
       </section>
@@ -60,19 +82,21 @@ export function BookEditor({ bookId, contentJson, canEdit, canAnnotate }: { book
   }
 
   return (
-    <section className="flex-1 overflow-y-auto p-8">
-      <div className="mx-auto max-w-4xl rounded border border-zinc-200 bg-paper px-20 py-16 shadow-paper prose-manuscript">
+    <section className="flex-1 p-8">
+      <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper prose-manuscript">
         <EditorContent editor={editor} />
-        <VisualPage pageNumber={1} />
-        <VisualPage pageNumber={2} />
+        {Array.from({ length: Math.max(0, pages - 1) }).map((_, i) => (
+          <VisualPage key={i} pageNumber={i + 2} />
+        ))}
       </div>
-      <div className="mx-auto mt-2 flex max-w-4xl justify-between text-xs text-zinc-500">
+      <div className="mx-auto mt-2 flex w-[560px] justify-between text-xs text-zinc-500">
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>{words} Wörter</span>
       </div>
       <EditorToolbar
         editor={editor}
         canEdit={canEdit}
+        canAddNote={canAnnotate && selectionText.trim().length > 0}
         onAddNote={() => {
           if (!canAnnotate || !selectionText.trim()) return;
           const body = window.prompt("Notiz");
