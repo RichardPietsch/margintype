@@ -11,7 +11,6 @@ import { createOrUpdateAutoChapter } from "@/server/actions/chapters";
 import { EditorToolbar } from "./EditorToolbar";
 
 const A5_PAGE_HEIGHT = 794;
-const APPROX_CHARS_PER_PAGE = 1800;
 
 export function BookEditor({
   bookId,
@@ -33,6 +32,7 @@ export function BookEditor({
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wheelBufferRef = useRef(0);
 
   useEffect(() => {
     setMounted(true);
@@ -53,14 +53,19 @@ export function BookEditor({
     }
   });
 
+  const recalcPages = (instance = editor) => {
+    if (!instance) return;
+    const contentHeight = instance.view.dom.scrollHeight;
+    const pages = Math.max(1, Math.ceil(contentHeight / A5_PAGE_HEIGHT));
+    setTotalPages(pages);
+    setCurrentPage((prev) => Math.min(prev, pages));
+  };
+
   useEffect(() => {
     if (!editor || !canEdit) return;
 
     const onUpdate = () => {
-      const chars = editor.storage.characterCount.characters();
-      const pages = Math.max(1, Math.ceil(chars / APPROX_CHARS_PER_PAGE));
-      setTotalPages(pages);
-      setCurrentPage((prev) => Math.min(prev, pages));
+      recalcPages(editor);
 
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
@@ -78,6 +83,13 @@ export function BookEditor({
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
   }, [bookId, canEdit, editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    recalcPages(editor);
+    const interval = setInterval(() => recalcPages(editor), 500);
+    return () => clearInterval(interval);
+  }, [editor]);
 
   useEffect(() => {
     onPageChange(currentPage, totalPages);
@@ -100,10 +112,13 @@ export function BookEditor({
   return (
     <section className="flex-1 p-8">
       <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
-        <div className="h-[794px] overflow-hidden" onWheel={(e) => {
-          if (Math.abs(e.deltaY) < 3) return;
-          if (e.deltaY > 0) setCurrentPage((p) => Math.min(totalPages, p + 1));
+        <div className="h-[794px] overflow-hidden" onWheelCapture={(e) => {
+          e.preventDefault();
+          wheelBufferRef.current += e.deltaY;
+          if (Math.abs(wheelBufferRef.current) < 80) return;
+          if (wheelBufferRef.current > 0) setCurrentPage((p) => Math.min(totalPages, p + 1));
           else setCurrentPage((p) => Math.max(1, p - 1));
+          wheelBufferRef.current = 0;
         }}>
           <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript transition-transform duration-150">
             <EditorContent editor={editor} />
