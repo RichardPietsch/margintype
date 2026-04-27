@@ -10,7 +10,9 @@ import { createNote } from "@/server/actions/notes";
 import { createOrUpdateAutoChapter } from "@/server/actions/chapters";
 import { EditorToolbar } from "./EditorToolbar";
 
-const A5_PAGE_HEIGHT = 794;
+const BASELINE_PX = 32;
+const PAGE_LINES = 23;
+const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 736px => exact baseline multiple, no half-lines
 
 export function BookEditor({
   bookId,
@@ -122,7 +124,7 @@ export function BookEditor({
     <section className="flex-1 p-8">
       <div className="mx-auto w-[560px] rounded border border-zinc-200 bg-paper px-16 py-14 shadow-paper">
         <div
-          className="h-[794px] overflow-hidden"
+          className="h-[736px] overflow-hidden bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_31px,rgba(0,0,0,0.035)_31px,rgba(0,0,0,0.035)_32px)]"
           onWheelCapture={(e) => {
             e.preventDefault();
             if (wheelLockRef.current) return;
@@ -137,7 +139,7 @@ export function BookEditor({
             }, 120);
           }}
         >
-          <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript transition-transform duration-150">
+          <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
             <EditorContent editor={editor} />
           </div>
         </div>
