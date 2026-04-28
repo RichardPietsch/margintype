@@ -41,6 +41,7 @@ export function BookEditor({
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [canvasScale, setCanvasScale] = useState(1);
+  const [pageSize, setPageSize] = useState({ width: PAPER_CANVAS_WIDTH, height: PAPER_CANVAS_HEIGHT });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelLockRef = useRef(false);
   const pageViewportRef = useRef<HTMLDivElement | null>(null);
@@ -122,16 +123,26 @@ export function BookEditor({
     if (!host) return;
 
     const computeScale = () => {
-      const widthScale = host.clientWidth / PAPER_CANVAS_WIDTH;
-      const heightScale = (host.clientHeight - FOOTER_HEIGHT) / PAPER_CANVAS_HEIGHT;
-      const nextScale = Math.min(widthScale, heightScale);
-      setCanvasScale(Math.max(0.2, nextScale * 0.98));
+      const availableWidth = host.clientWidth;
+      const availableHeight = Math.max(0, host.clientHeight - FOOTER_HEIGHT);
+
+      const widthFromHeight = availableHeight * A5_RATIO;
+      const fittedWidth = Math.min(availableWidth, widthFromHeight);
+      const fittedHeight = fittedWidth / A5_RATIO;
+      const scale = fittedHeight / PAPER_CANVAS_HEIGHT;
+
+      setPageSize({ width: fittedWidth, height: fittedHeight });
+      setCanvasScale(Math.max(0.1, scale));
     };
 
     computeScale();
     const observer = new ResizeObserver(computeScale);
     observer.observe(host);
-    return () => observer.disconnect();
+    window.addEventListener("resize", computeScale);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", computeScale);
+    };
   }, []);
 
   useEffect(() => {
@@ -198,7 +209,7 @@ export function BookEditor({
       >
         <div
           className="relative mx-auto"
-          style={{ width: PAPER_CANVAS_WIDTH * canvasScale, height: PAPER_CANVAS_HEIGHT * canvasScale }}
+          style={{ width: pageSize.width, height: pageSize.height }}
         >
           <div
             className="relative"
@@ -253,7 +264,7 @@ export function BookEditor({
           />
         </div>
       </div>
-      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: PAPER_CANVAS_WIDTH * canvasScale }}>
+      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: pageSize.width }}>
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>
