@@ -130,7 +130,7 @@ export function BookEditor({
       const scale = fittedHeight / CANVAS_PAGE_HEIGHT;
 
       setPageSize({ width: fittedWidth, height: fittedHeight });
-      setCanvasScale(Math.max(0.1, scale));
+      setCanvasScale(Math.max(0, scale));
     };
 
     computeScale();
@@ -184,10 +184,9 @@ export function BookEditor({
     return (
       <section className="flex h-full flex-1 p-4 sm:p-8">
         <div
-          className="mx-auto rounded border border-zinc-200 bg-paper shadow-paper prose-manuscript"
+          className="mx-auto w-full max-w-full rounded border border-zinc-200 bg-paper shadow-paper prose-manuscript"
           style={{
-            width: pageSize.width > 0 ? pageSize.width : "100%",
-            maxHeight: "100%",
+            width: pageSize.width > 0 ? pageSize.width : undefined,
             aspectRatio: "148 / 210",
             padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
           }}
@@ -204,10 +203,10 @@ export function BookEditor({
     <section className="flex h-full flex-1 flex-col p-4 sm:p-8">
       <div
         ref={responsiveHostRef}
-        className="mx-auto h-full w-full flex-1"
+        className="mx-auto flex h-full w-full flex-1 items-center justify-center overflow-hidden"
       >
         <div
-          className="relative mx-auto"
+          className="relative"
           style={{ width: pageSize.width, height: pageSize.height }}
         >
           <div
