@@ -17,6 +17,7 @@ const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px text area => 30 lines
 const EDITOR_CANVAS_WIDTH = 780;
 const PAPER_WIDTH = 720;
 const PAGE_VIEWPORT_HEIGHT = 840;
+const FOOTER_HEIGHT = 32;
 
 export function BookEditor({
   bookId,
@@ -120,7 +121,9 @@ export function BookEditor({
 
     const computeScale = () => {
       const widthScale = host.clientWidth / EDITOR_CANVAS_WIDTH;
-      setCanvasScale(Math.max(0.55, widthScale));
+      const heightScale = (host.clientHeight - FOOTER_HEIGHT) / PAGE_VIEWPORT_HEIGHT;
+      const nextScale = Math.min(widthScale, heightScale);
+      setCanvasScale(Math.max(0.45, nextScale));
     };
 
     computeScale();
@@ -168,7 +171,7 @@ export function BookEditor({
 
   if (!mounted) {
     return (
-      <section className="flex-1 p-4 sm:p-8">
+      <section className="flex h-full flex-1 p-4 sm:p-8">
         <div className="mx-auto rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper prose-manuscript" style={{ width: PAPER_WIDTH }}>
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
         </div>
@@ -179,11 +182,10 @@ export function BookEditor({
   const pageOffset = (currentPage - 1) * A5_PAGE_HEIGHT;
 
   return (
-    <section className="flex-1 p-4 sm:p-8">
+    <section className="flex h-full flex-1 flex-col p-4 sm:p-8">
       <div
         ref={responsiveHostRef}
-        className="mx-auto"
-        style={{ width: "min(100%, 1100px)", height: PAGE_VIEWPORT_HEIGHT * canvasScale }}
+        className="mx-auto h-full w-full flex-1"
       >
         <div
           className="relative mx-auto"

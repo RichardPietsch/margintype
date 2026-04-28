@@ -23,7 +23,7 @@ export function ChapterSidebar({
   onNavigate?: () => void;
 }) {
   return (
-    <aside className={`flex min-h-0 w-full max-w-80 flex-col border-r border-zinc-200 bg-zinc-50/70 p-4 backdrop-blur ${className}`}>
+    <aside className={`flex min-h-0 w-full flex-col border-r border-zinc-200 bg-zinc-50/70 p-4 backdrop-blur ${className}`}>
       <a href="/dashboard" onClick={onNavigate} className="mb-4 text-xs text-zinc-500">← Zurück</a>
       <h2 className="mb-4 line-clamp-2 text-sm font-medium">{title}</h2>
       <ul className="flex-1 space-y-2 overflow-y-auto">

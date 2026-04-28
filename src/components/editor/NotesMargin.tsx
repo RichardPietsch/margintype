@@ -43,7 +43,7 @@ export function NotesMargin({
     .sort((a, b) => (a.anchorFrom ?? 0) - (b.anchorFrom ?? 0));
 
   return (
-    <aside className={`min-h-0 w-full max-w-80 overflow-y-auto border-l border-zinc-200 bg-zinc-50/70 p-4 backdrop-blur ${className}`}>
+    <aside className={`min-h-0 w-full overflow-y-auto border-l border-zinc-200 bg-zinc-50/70 p-4 backdrop-blur ${className}`}>
       <h3 className="mb-1 text-sm font-medium">Notizen</h3>
       <p className="mb-3 text-xs text-zinc-500">Seite {currentPage} / {totalPages}</p>
       <div className="space-y-3">
