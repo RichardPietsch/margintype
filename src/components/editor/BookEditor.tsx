@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import CharacterCount from "@tiptap/extension-character-count";
 import Highlight from "@tiptap/extension-highlight";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { saveDocument } from "@/server/actions/documents";
 import { createNote } from "@/server/actions/notes";
 import { createOrUpdateAutoChapter } from "@/server/actions/chapters";
@@ -118,7 +118,7 @@ export function BookEditor({
     onPageChange(currentPage, totalPages);
   }, [currentPage, onPageChange, totalPages]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const host = responsiveHostRef.current;
     if (!host) return;
 
@@ -130,16 +130,19 @@ export function BookEditor({
       const scale = fittedHeight / CANVAS_PAGE_HEIGHT;
 
       setPageSize({ width: fittedWidth, height: fittedHeight });
-      setCanvasScale(Math.max(0, scale));
+      setCanvasScale(Math.max(0.0001, scale));
     };
 
     computeScale();
     const observer = new ResizeObserver(computeScale);
     observer.observe(host);
+    if (host.parentElement) observer.observe(host.parentElement);
     window.addEventListener("resize", computeScale);
+    window.addEventListener("orientationchange", computeScale);
     return () => {
       observer.disconnect();
       window.removeEventListener("resize", computeScale);
+      window.removeEventListener("orientationchange", computeScale);
     };
   }, []);
 
@@ -201,13 +204,10 @@ export function BookEditor({
 
   return (
     <section className="flex h-full flex-1 flex-col p-4 sm:p-8">
-      <div
-        ref={responsiveHostRef}
-        className="mx-auto flex h-full w-full flex-1 items-center justify-center overflow-hidden"
-      >
+      <div ref={responsiveHostRef} className="grid h-full w-full flex-1 place-items-center overflow-hidden">
         <div
           className="relative"
-          style={{ width: pageSize.width, height: pageSize.height }}
+          style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}
         >
           <div
             className="relative"
