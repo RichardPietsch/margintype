@@ -30,6 +30,13 @@ body {
   line-height: 24px;
   letter-spacing: 0.01em;
   color: #222;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 23px,
+    rgba(0, 0, 0, 0.035) 23px,
+    rgba(0, 0, 0, 0.035) 24px
+  );
 }
 
 .prose-manuscript .ProseMirror h1,
