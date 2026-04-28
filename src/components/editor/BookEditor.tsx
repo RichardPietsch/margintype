@@ -36,6 +36,7 @@ export function BookEditor({
   const [currentPage, setCurrentPage] = useState(1);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelLockRef = useRef(false);
+  const pageViewportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -109,6 +110,28 @@ export function BookEditor({
   }, [currentPage, onPageChange, totalPages]);
 
   useEffect(() => {
+    const node = pageViewportRef.current;
+    if (!node) return;
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      if (wheelLockRef.current) return;
+      wheelLockRef.current = true;
+      setCurrentPage((prev) => {
+        if (event.deltaY > 0) return Math.min(totalPages, prev + 1);
+        if (event.deltaY < 0) return Math.max(1, prev - 1);
+        return prev;
+      });
+      window.setTimeout(() => {
+        wheelLockRef.current = false;
+      }, 120);
+    };
+
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [totalPages]);
+
+  useEffect(() => {
     if (!editor) return;
     const handler = (event: Event) => {
       const custom = event as CustomEvent<{ from: number | null; to: number | null }>;
@@ -140,20 +163,8 @@ export function BookEditor({
       <div className="relative mx-auto w-[780px]">
         <div className="mx-auto w-[720px] rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper">
           <div
+            ref={pageViewportRef}
             className="h-[840px] overflow-hidden"
-            onWheelCapture={(e) => {
-              e.preventDefault();
-              if (wheelLockRef.current) return;
-              wheelLockRef.current = true;
-              setCurrentPage((prev) => {
-                if (e.deltaY > 0) return Math.min(totalPages, prev + 1);
-                if (e.deltaY < 0) return Math.max(1, prev - 1);
-                return prev;
-              });
-              window.setTimeout(() => {
-                wheelLockRef.current = false;
-              }, 120);
-            }}
           >
             <div className="flex h-full items-center">
               <div className="h-[720px] w-full overflow-hidden">
