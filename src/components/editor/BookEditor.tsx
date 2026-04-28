@@ -15,10 +15,10 @@ const BASELINE_PX = 24;
 const PAGE_LINES = 30;
 const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px text area => 30 lines
 const A5_RATIO = 148 / 210;
-const PAPER_CANVAS_HEIGHT = 840;
-const PAPER_CANVAS_WIDTH = Math.round(PAPER_CANVAS_HEIGHT * A5_RATIO);
+const CANVAS_PAGE_HEIGHT = 840;
+const CANVAS_PAGE_WIDTH = CANVAS_PAGE_HEIGHT * A5_RATIO;
 const PAGE_HORIZONTAL_PADDING = 64;
-const PAGE_VERTICAL_PADDING = (PAPER_CANVAS_HEIGHT - A5_PAGE_HEIGHT) / 2;
+const PAGE_VERTICAL_PADDING = (CANVAS_PAGE_HEIGHT - A5_PAGE_HEIGHT) / 2;
 const FOOTER_HEIGHT = 32;
 
 export function BookEditor({
@@ -125,11 +125,9 @@ export function BookEditor({
     const computeScale = () => {
       const availableWidth = host.clientWidth;
       const availableHeight = Math.max(0, host.clientHeight - FOOTER_HEIGHT);
-      const viewportDrivenHeight = window.innerHeight * 0.82;
-
-      const fittedHeight = Math.min(availableHeight, viewportDrivenHeight, availableWidth / A5_RATIO);
+      const fittedHeight = Math.max(0, Math.min(availableHeight, availableWidth / A5_RATIO));
       const fittedWidth = fittedHeight * A5_RATIO;
-      const scale = fittedHeight / PAPER_CANVAS_HEIGHT;
+      const scale = fittedHeight / CANVAS_PAGE_HEIGHT;
 
       setPageSize({ width: fittedWidth, height: fittedHeight });
       setCanvasScale(Math.max(0.1, scale));
@@ -188,7 +186,8 @@ export function BookEditor({
         <div
           className="mx-auto rounded border border-zinc-200 bg-paper shadow-paper prose-manuscript"
           style={{
-            width: "min(56vw, calc(82vh * 148 / 210))",
+            width: pageSize.width > 0 ? pageSize.width : "100%",
+            maxHeight: "100%",
             aspectRatio: "148 / 210",
             padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
           }}
@@ -209,17 +208,17 @@ export function BookEditor({
       >
         <div
           className="relative mx-auto"
-          style={{ width: pageSize.width || PAPER_CANVAS_WIDTH, height: pageSize.height || PAPER_CANVAS_HEIGHT }}
+          style={{ width: pageSize.width, height: pageSize.height }}
         >
           <div
             className="relative"
-            style={{ width: PAPER_CANVAS_WIDTH, height: PAPER_CANVAS_HEIGHT, transform: `scale(${canvasScale})`, transformOrigin: "top left" }}
+            style={{ width: CANVAS_PAGE_WIDTH, height: CANVAS_PAGE_HEIGHT, transform: `scale(${canvasScale})`, transformOrigin: "top left" }}
           >
             <div
               className="rounded border border-zinc-200 bg-paper shadow-paper"
               style={{
-                width: PAPER_CANVAS_WIDTH,
-                height: PAPER_CANVAS_HEIGHT,
+                width: CANVAS_PAGE_WIDTH,
+                height: CANVAS_PAGE_HEIGHT,
                 padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
               }}
             >
@@ -264,7 +263,7 @@ export function BookEditor({
           />
         </div>
       </div>
-      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: pageSize.width || PAPER_CANVAS_WIDTH }}>
+      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: pageSize.width }}>
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>
