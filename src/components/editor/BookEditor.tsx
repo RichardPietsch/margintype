@@ -14,6 +14,9 @@ import { EditorToolbar } from "./EditorToolbar";
 const BASELINE_PX = 24;
 const PAGE_LINES = 30;
 const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px text area => 30 lines
+const EDITOR_CANVAS_WIDTH = 780;
+const PAPER_WIDTH = 720;
+const PAGE_VIEWPORT_HEIGHT = 840;
 
 export function BookEditor({
   bookId,
@@ -34,9 +37,11 @@ export function BookEditor({
   const [mounted, setMounted] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+  const [canvasScale, setCanvasScale] = useState(1);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelLockRef = useRef(false);
   const pageViewportRef = useRef<HTMLDivElement | null>(null);
+  const responsiveHostRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -110,6 +115,21 @@ export function BookEditor({
   }, [currentPage, onPageChange, totalPages]);
 
   useEffect(() => {
+    const host = responsiveHostRef.current;
+    if (!host) return;
+
+    const computeScale = () => {
+      const widthScale = host.clientWidth / EDITOR_CANVAS_WIDTH;
+      setCanvasScale(Math.max(0.55, widthScale));
+    };
+
+    computeScale();
+    const observer = new ResizeObserver(computeScale);
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const node = pageViewportRef.current;
     if (!node) return;
 
@@ -147,9 +167,9 @@ export function BookEditor({
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
 
   if (!mounted) {
-      return (
-      <section className="flex-1 p-8">
-        <div className="mx-auto w-[720px] rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper prose-manuscript">
+    return (
+      <section className="flex-1 p-4 sm:p-8">
+        <div className="mx-auto rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper prose-manuscript" style={{ width: PAPER_WIDTH }}>
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
         </div>
       </section>
@@ -159,54 +179,60 @@ export function BookEditor({
   const pageOffset = (currentPage - 1) * A5_PAGE_HEIGHT;
 
   return (
-    <section className="flex-1 p-8">
-      <div className="relative mx-auto w-[780px]">
-        <div className="mx-auto w-[720px] rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper">
-          <div
-            ref={pageViewportRef}
-            className="h-[840px] overflow-hidden"
-          >
-            <div className="flex h-full items-center">
-              <div className="h-[720px] w-full overflow-hidden">
-                <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
-                  <EditorContent editor={editor} />
+    <section className="flex-1 p-4 sm:p-8">
+      <div
+        ref={responsiveHostRef}
+        className="mx-auto"
+        style={{ width: "min(100%, 1100px)", height: PAGE_VIEWPORT_HEIGHT * canvasScale }}
+      >
+        <div
+          className="relative mx-auto"
+          style={{ width: EDITOR_CANVAS_WIDTH, transform: `scale(${canvasScale})`, transformOrigin: "top center" }}
+        >
+          <div className="mx-auto rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper" style={{ width: PAPER_WIDTH }}>
+            <div ref={pageViewportRef} className="overflow-hidden" style={{ height: PAGE_VIEWPORT_HEIGHT }}>
+              <div className="flex h-full items-center">
+                <div className="h-[720px] w-full overflow-hidden">
+                  <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
+                    <EditorContent editor={editor} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <EditorToolbar
-          editor={editor}
-          canEdit={canEdit}
-          canAddNote={canAnnotate && selectionText.trim().length > 0}
-          onFullPage={() => {
-            if (!editor || !canEdit) return;
-            const title = selectionText.trim() || "Kapitel";
-            const nodeId = `auto-${title.toLowerCase().replace(/\s+/g, "-").slice(0, 64)}`;
-            editor.chain().focus().toggleHeading({ level: 1 }).updateAttributes("heading", { "data-full-page": "true" }).run();
-            startTransition(async () => {
-              await createOrUpdateAutoChapter({ bookId, title, editorNodeId: nodeId });
-            });
-          }}
-          onAddNote={() => {
-            if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
-            const body = window.prompt("Notiz");
-            if (!body) return;
-            editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
-            startTransition(async () => {
-              await createNote({
-                bookId,
-                selectedTextSnapshot: selectionText,
-                body,
-                anchorFrom: selectionRange.from,
-                anchorTo: selectionRange.to,
-                anchorId: `a-${selectionRange.from}-${selectionRange.to}`
+          <EditorToolbar
+            editor={editor}
+            canEdit={canEdit}
+            canAddNote={canAnnotate && selectionText.trim().length > 0}
+            onFullPage={() => {
+              if (!editor || !canEdit) return;
+              const title = selectionText.trim() || "Kapitel";
+              const nodeId = `auto-${title.toLowerCase().replace(/\s+/g, "-").slice(0, 64)}`;
+              editor.chain().focus().toggleHeading({ level: 1 }).updateAttributes("heading", { "data-full-page": "true" }).run();
+              startTransition(async () => {
+                await createOrUpdateAutoChapter({ bookId, title, editorNodeId: nodeId });
               });
-            });
-          }}
-        />
+            }}
+            onAddNote={() => {
+              if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
+              const body = window.prompt("Notiz");
+              if (!body) return;
+              editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
+              startTransition(async () => {
+                await createNote({
+                  bookId,
+                  selectedTextSnapshot: selectionText,
+                  body,
+                  anchorFrom: selectionRange.from,
+                  anchorTo: selectionRange.to,
+                  anchorId: `a-${selectionRange.from}-${selectionRange.to}`
+                });
+              });
+            }}
+          />
+        </div>
       </div>
-      <div className="mx-auto mt-2 flex w-[720px] justify-between text-xs text-zinc-500">
+      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: PAPER_WIDTH * canvasScale }}>
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>
