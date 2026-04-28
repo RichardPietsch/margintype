@@ -41,7 +41,7 @@ export function BookEditor({
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [canvasScale, setCanvasScale] = useState(1);
-  const [pageSize, setPageSize] = useState({ width: PAPER_CANVAS_WIDTH, height: PAPER_CANVAS_HEIGHT });
+  const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelLockRef = useRef(false);
   const pageViewportRef = useRef<HTMLDivElement | null>(null);
@@ -125,10 +125,10 @@ export function BookEditor({
     const computeScale = () => {
       const availableWidth = host.clientWidth;
       const availableHeight = Math.max(0, host.clientHeight - FOOTER_HEIGHT);
+      const viewportDrivenHeight = window.innerHeight * 0.82;
 
-      const widthFromHeight = availableHeight * A5_RATIO;
-      const fittedWidth = Math.min(availableWidth, widthFromHeight);
-      const fittedHeight = fittedWidth / A5_RATIO;
+      const fittedHeight = Math.min(availableHeight, viewportDrivenHeight, availableWidth / A5_RATIO);
+      const fittedWidth = fittedHeight * A5_RATIO;
       const scale = fittedHeight / PAPER_CANVAS_HEIGHT;
 
       setPageSize({ width: fittedWidth, height: fittedHeight });
@@ -188,8 +188,8 @@ export function BookEditor({
         <div
           className="mx-auto rounded border border-zinc-200 bg-paper shadow-paper prose-manuscript"
           style={{
-            width: PAPER_CANVAS_WIDTH,
-            height: PAPER_CANVAS_HEIGHT,
+            width: "min(56vw, calc(82vh * 148 / 210))",
+            aspectRatio: "148 / 210",
             padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
           }}
         >
@@ -209,7 +209,7 @@ export function BookEditor({
       >
         <div
           className="relative mx-auto"
-          style={{ width: pageSize.width, height: pageSize.height }}
+          style={{ width: pageSize.width || PAPER_CANVAS_WIDTH, height: pageSize.height || PAPER_CANVAS_HEIGHT }}
         >
           <div
             className="relative"
@@ -264,7 +264,7 @@ export function BookEditor({
           />
         </div>
       </div>
-      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: pageSize.width }}>
+      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: pageSize.width || PAPER_CANVAS_WIDTH }}>
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>
