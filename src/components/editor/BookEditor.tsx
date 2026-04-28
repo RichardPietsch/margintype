@@ -14,9 +14,11 @@ import { EditorToolbar } from "./EditorToolbar";
 const BASELINE_PX = 24;
 const PAGE_LINES = 30;
 const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px text area => 30 lines
-const EDITOR_CANVAS_WIDTH = 780;
-const PAPER_WIDTH = 720;
-const PAGE_VIEWPORT_HEIGHT = 840;
+const A5_RATIO = 148 / 210;
+const PAPER_CANVAS_HEIGHT = 840;
+const PAPER_CANVAS_WIDTH = Math.round(PAPER_CANVAS_HEIGHT * A5_RATIO);
+const PAGE_HORIZONTAL_PADDING = 64;
+const PAGE_VERTICAL_PADDING = (PAPER_CANVAS_HEIGHT - A5_PAGE_HEIGHT) / 2;
 const FOOTER_HEIGHT = 32;
 
 export function BookEditor({
@@ -120,10 +122,10 @@ export function BookEditor({
     if (!host) return;
 
     const computeScale = () => {
-      const widthScale = host.clientWidth / EDITOR_CANVAS_WIDTH;
-      const heightScale = (host.clientHeight - FOOTER_HEIGHT) / PAGE_VIEWPORT_HEIGHT;
+      const widthScale = host.clientWidth / PAPER_CANVAS_WIDTH;
+      const heightScale = (host.clientHeight - FOOTER_HEIGHT) / PAPER_CANVAS_HEIGHT;
       const nextScale = Math.min(widthScale, heightScale);
-      setCanvasScale(Math.max(0.45, nextScale));
+      setCanvasScale(Math.max(0.2, nextScale * 0.98));
     };
 
     computeScale();
@@ -172,7 +174,14 @@ export function BookEditor({
   if (!mounted) {
     return (
       <section className="flex h-full flex-1 p-4 sm:p-8">
-        <div className="mx-auto rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper prose-manuscript" style={{ width: PAPER_WIDTH }}>
+        <div
+          className="mx-auto rounded border border-zinc-200 bg-paper shadow-paper prose-manuscript"
+          style={{
+            width: PAPER_CANVAS_WIDTH,
+            height: PAPER_CANVAS_HEIGHT,
+            padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
+          }}
+        >
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
         </div>
       </section>
@@ -189,12 +198,22 @@ export function BookEditor({
       >
         <div
           className="relative mx-auto"
-          style={{ width: EDITOR_CANVAS_WIDTH, transform: `scale(${canvasScale})`, transformOrigin: "top center" }}
+          style={{ width: PAPER_CANVAS_WIDTH * canvasScale, height: PAPER_CANVAS_HEIGHT * canvasScale }}
         >
-          <div className="mx-auto rounded border border-zinc-200 bg-paper px-20 py-14 shadow-paper" style={{ width: PAPER_WIDTH }}>
-            <div ref={pageViewportRef} className="overflow-hidden" style={{ height: PAGE_VIEWPORT_HEIGHT }}>
-              <div className="flex h-full items-center">
-                <div className="h-[720px] w-full overflow-hidden">
+          <div
+            className="relative"
+            style={{ width: PAPER_CANVAS_WIDTH, height: PAPER_CANVAS_HEIGHT, transform: `scale(${canvasScale})`, transformOrigin: "top left" }}
+          >
+            <div
+              className="rounded border border-zinc-200 bg-paper shadow-paper"
+              style={{
+                width: PAPER_CANVAS_WIDTH,
+                height: PAPER_CANVAS_HEIGHT,
+                padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
+              }}
+            >
+              <div ref={pageViewportRef} className="overflow-hidden" style={{ height: A5_PAGE_HEIGHT }}>
+                <div className="h-full w-full overflow-hidden">
                   <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
                     <EditorContent editor={editor} />
                   </div>
@@ -234,7 +253,7 @@ export function BookEditor({
           />
         </div>
       </div>
-      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: PAPER_WIDTH * canvasScale }}>
+      <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: PAPER_CANVAS_WIDTH * canvasScale }}>
         <span>{pending ? "Speichert …" : "Automatisch gespeichert"}</span>
         <span>Seite {currentPage} / {totalPages} · {words} Wörter</span>
       </div>
