@@ -76,16 +76,18 @@ export function BookWorkspace({
             className="h-full"
           />
         )}
-        <BookEditor
-          bookId={bookId}
-          contentJson={contentJson}
-          canEdit={canEdit}
-          canAnnotate={canAnnotate}
-          onPageChange={(page, pages) => {
-            setCurrentPage(page);
-            setTotalPages(pages);
-          }}
-        />
+        <div className="min-h-0">
+          <BookEditor
+            bookId={bookId}
+            contentJson={contentJson}
+            canEdit={canEdit}
+            canAnnotate={canAnnotate}
+            onPageChange={(page, pages) => {
+              setCurrentPage(page);
+              setTotalPages(pages);
+            }}
+          />
+        </div>
         {showSidebars && <NotesMargin notes={notes} currentPage={currentPage} totalPages={totalPages} className="h-full" />}
       </div>
       <ChapterDetailsModal chapter={chapter} onClose={() => setEditingChapterId(null)} />

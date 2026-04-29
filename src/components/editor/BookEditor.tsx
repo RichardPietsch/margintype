@@ -123,8 +123,9 @@ export function BookEditor({
     if (!host) return;
 
     const computeScale = () => {
-      const availableWidth = host.clientWidth;
-      const availableHeight = Math.max(0, host.clientHeight - FOOTER_HEIGHT);
+      const rect = host.getBoundingClientRect();
+      const availableWidth = rect.width;
+      const availableHeight = Math.max(0, rect.height - FOOTER_HEIGHT);
       const fittedHeight = Math.max(0, Math.min(availableHeight, availableWidth / A5_RATIO));
       const fittedWidth = fittedHeight * A5_RATIO;
       const scale = fittedHeight / CANVAS_PAGE_HEIGHT;
@@ -203,8 +204,8 @@ export function BookEditor({
   const pageOffset = (currentPage - 1) * A5_PAGE_HEIGHT;
 
   return (
-    <section className="flex h-full flex-1 flex-col p-4 sm:p-8">
-      <div ref={responsiveHostRef} className="grid h-full w-full flex-1 place-items-center overflow-hidden">
+    <section className="flex h-full min-h-0 flex-1 flex-col p-4 sm:p-8">
+      <div ref={responsiveHostRef} className="grid h-full min-h-0 w-full flex-1 place-items-center overflow-hidden">
         <div
           className="relative"
           style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}
