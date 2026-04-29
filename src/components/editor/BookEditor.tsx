@@ -45,7 +45,7 @@ export function BookEditor({
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wheelLockRef = useRef(false);
   const pageViewportRef = useRef<HTMLDivElement | null>(null);
-  const responsiveHostRef = useRef<HTMLDivElement | null>(null);
+  const pageHostRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -119,7 +119,7 @@ export function BookEditor({
   }, [currentPage, onPageChange, totalPages]);
 
   useLayoutEffect(() => {
-    const host = responsiveHostRef.current;
+    const host = pageHostRef.current;
     if (!host) return;
 
     const computeScale = () => {
@@ -135,6 +135,7 @@ export function BookEditor({
     };
 
     computeScale();
+    const raf = window.requestAnimationFrame(computeScale);
     const observer = new ResizeObserver(computeScale);
     observer.observe(host);
     if (host.parentElement) observer.observe(host.parentElement);
@@ -144,6 +145,7 @@ export function BookEditor({
       observer.disconnect();
       window.removeEventListener("resize", computeScale);
       window.removeEventListener("orientationchange", computeScale);
+      window.cancelAnimationFrame(raf);
     };
   }, []);
 
@@ -184,7 +186,7 @@ export function BookEditor({
 
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
 
-  if (!mounted) {
+  if (!mounted || pageSize.width <= 0 || pageSize.height <= 0) {
     return (
       <section className="flex h-full flex-1 p-4 sm:p-8">
         <div
@@ -205,7 +207,7 @@ export function BookEditor({
 
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col p-4 sm:p-8">
-      <div ref={responsiveHostRef} className="grid h-full min-h-0 w-full flex-1 place-items-center overflow-hidden">
+      <div ref={pageHostRef} className="grid h-full min-h-0 w-full flex-1 place-items-center overflow-hidden">
         <div
           className="relative"
           style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}
