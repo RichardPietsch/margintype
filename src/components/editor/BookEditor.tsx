@@ -186,7 +186,7 @@ export function BookEditor({
 
   const words = useMemo(() => (editor?.storage.characterCount.words() ?? 0), [editor?.state]);
 
-  if (!mounted || pageSize.width <= 0 || pageSize.height <= 0) {
+  if (!mounted) {
     return (
       <section className="flex h-full flex-1 p-4 sm:p-8">
         <div
