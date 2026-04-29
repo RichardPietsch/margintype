@@ -125,7 +125,7 @@ export function BookEditor({
     const computeScale = () => {
       const rect = host.getBoundingClientRect();
       const availableWidth = rect.width;
-      const availableHeight = Math.max(0, rect.height - FOOTER_HEIGHT);
+      const availableHeight = Math.max(0, rect.height - FOOTER_HEIGHT) || Math.max(0, window.innerHeight - 120);
       const fittedHeight = Math.max(0, Math.min(availableHeight, availableWidth / A5_RATIO));
       const fittedWidth = fittedHeight * A5_RATIO;
       const scale = fittedHeight / CANVAS_PAGE_HEIGHT;
@@ -207,7 +207,7 @@ export function BookEditor({
 
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col p-4 sm:p-8">
-      <div ref={pageHostRef} className="grid h-full min-h-0 w-full flex-1 place-items-center overflow-hidden">
+      <div ref={pageHostRef} className="flex h-full min-h-0 w-full flex-1 items-center justify-center overflow-hidden">
         <div
           className="relative"
           style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}

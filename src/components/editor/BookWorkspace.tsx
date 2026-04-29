@@ -76,7 +76,7 @@ export function BookWorkspace({
             className="h-full"
           />
         )}
-        <div className="min-h-0">
+        <div className="h-full min-h-0">
           <BookEditor
             bookId={bookId}
             contentJson={contentJson}
