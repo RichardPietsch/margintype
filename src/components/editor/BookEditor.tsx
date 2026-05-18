@@ -193,6 +193,7 @@ export function BookEditor({
           className="mx-auto w-full max-w-full rounded border border-zinc-200 bg-paper shadow-paper prose-manuscript"
           style={{
             width: pageSize.width > 0 ? pageSize.width : undefined,
+            height: pageSize.height > 0 ? pageSize.height : undefined,
             aspectRatio: "148 / 210",
             padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
           }}
@@ -213,8 +214,13 @@ export function BookEditor({
           style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}
         >
           <div
-            className="relative"
-            style={{ width: CANVAS_PAGE_WIDTH, height: CANVAS_PAGE_HEIGHT, transform: `scale(${canvasScale})`, transformOrigin: "top left" }}
+            className="absolute left-1/2 top-1/2"
+            style={{
+              width: CANVAS_PAGE_WIDTH,
+              height: CANVAS_PAGE_HEIGHT,
+              transform: `translate(-50%, -50%) scale(${canvasScale})`,
+              transformOrigin: "center center"
+            }}
           >
             <div
               className="rounded border border-zinc-200 bg-paper shadow-paper"
