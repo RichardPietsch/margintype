@@ -125,7 +125,7 @@ export function BookEditor({
     const computeScale = () => {
       const rect = host.getBoundingClientRect();
       const availableWidth = rect.width;
-      const availableHeight = Math.max(0, rect.height - FOOTER_HEIGHT) || Math.max(0, window.innerHeight - 120);
+      const availableHeight = Math.max(0, rect.height - FOOTER_HEIGHT);
       const fittedHeight = Math.max(0, Math.min(availableHeight, availableWidth / A5_RATIO));
       const fittedWidth = fittedHeight * A5_RATIO;
       const scale = fittedHeight / CANVAS_PAGE_HEIGHT;
@@ -209,10 +209,7 @@ export function BookEditor({
   return (
     <section className="flex h-full min-h-0 flex-1 flex-col p-4 sm:p-8">
       <div ref={pageHostRef} className="flex h-full min-h-0 w-full flex-1 items-center justify-center overflow-hidden">
-        <div
-          className="relative"
-          style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}
-        >
+        <div className="relative" style={{ width: Math.max(pageSize.width, 1), height: Math.max(pageSize.height, 1) }}>
           <div
             className="absolute left-1/2 top-1/2"
             style={{
@@ -237,38 +234,38 @@ export function BookEditor({
                   </div>
                 </div>
               </div>
+              <EditorToolbar
+                editor={editor}
+                canEdit={canEdit}
+                canAddNote={canAnnotate && selectionText.trim().length > 0}
+                onFullPage={() => {
+                  if (!editor || !canEdit) return;
+                  const title = selectionText.trim() || "Kapitel";
+                  const nodeId = `auto-${title.toLowerCase().replace(/\s+/g, "-").slice(0, 64)}`;
+                  editor.chain().focus().toggleHeading({ level: 1 }).updateAttributes("heading", { "data-full-page": "true" }).run();
+                  startTransition(async () => {
+                    await createOrUpdateAutoChapter({ bookId, title, editorNodeId: nodeId });
+                  });
+                }}
+                onAddNote={() => {
+                  if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
+                  const body = window.prompt("Notiz");
+                  if (!body) return;
+                  editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
+                  startTransition(async () => {
+                    await createNote({
+                      bookId,
+                      selectedTextSnapshot: selectionText,
+                      body,
+                      anchorFrom: selectionRange.from,
+                      anchorTo: selectionRange.to,
+                      anchorId: `a-${selectionRange.from}-${selectionRange.to}`
+                    });
+                  });
+                }}
+              />
             </div>
           </div>
-          <EditorToolbar
-            editor={editor}
-            canEdit={canEdit}
-            canAddNote={canAnnotate && selectionText.trim().length > 0}
-            onFullPage={() => {
-              if (!editor || !canEdit) return;
-              const title = selectionText.trim() || "Kapitel";
-              const nodeId = `auto-${title.toLowerCase().replace(/\s+/g, "-").slice(0, 64)}`;
-              editor.chain().focus().toggleHeading({ level: 1 }).updateAttributes("heading", { "data-full-page": "true" }).run();
-              startTransition(async () => {
-                await createOrUpdateAutoChapter({ bookId, title, editorNodeId: nodeId });
-              });
-            }}
-            onAddNote={() => {
-              if (!canAnnotate || !selectionText.trim() || !selectionRange) return;
-              const body = window.prompt("Notiz");
-              if (!body) return;
-              editor?.chain().focus().setHighlight({ color: "#fef3c7" }).run();
-              startTransition(async () => {
-                await createNote({
-                  bookId,
-                  selectedTextSnapshot: selectionText,
-                  body,
-                  anchorFrom: selectionRange.from,
-                  anchorTo: selectionRange.to,
-                  anchorId: `a-${selectionRange.from}-${selectionRange.to}`
-                });
-              });
-            }}
-          />
         </div>
       </div>
       <div className="mx-auto mt-2 flex justify-between text-xs text-zinc-500" style={{ width: pageSize.width }}>
