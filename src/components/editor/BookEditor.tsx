@@ -17,8 +17,8 @@ const A5_PAGE_HEIGHT = BASELINE_PX * PAGE_LINES; // 720px text area => 30 lines
 const A5_RATIO = 148 / 210;
 const CANVAS_PAGE_HEIGHT = 840;
 const CANVAS_PAGE_WIDTH = CANVAS_PAGE_HEIGHT * A5_RATIO;
-const PAGE_HORIZONTAL_PADDING = 64;
-const PAGE_VERTICAL_PADDING = (CANVAS_PAGE_HEIGHT - A5_PAGE_HEIGHT) / 2;
+const PAGE_HORIZONTAL_PADDING_RATIO = 64 / CANVAS_PAGE_WIDTH;
+const PAGE_VERTICAL_PADDING_RATIO = (CANVAS_PAGE_HEIGHT - A5_PAGE_HEIGHT) / 2 / CANVAS_PAGE_HEIGHT;
 const FOOTER_HEIGHT = 32;
 
 export function BookEditor({
@@ -195,7 +195,7 @@ export function BookEditor({
             width: pageSize.width > 0 ? pageSize.width : undefined,
             height: pageSize.height > 0 ? pageSize.height : undefined,
             aspectRatio: "148 / 210",
-            padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
+            padding: `${PAGE_VERTICAL_PADDING_RATIO * 100}% ${PAGE_HORIZONTAL_PADDING_RATIO * 100}%`
           }}
         >
           <p className="text-sm text-zinc-400">Editor wird geladen …</p>
@@ -222,12 +222,12 @@ export function BookEditor({
             <div
               className="rounded border border-zinc-200 bg-paper shadow-paper"
               style={{
-                width: CANVAS_PAGE_WIDTH,
-                height: CANVAS_PAGE_HEIGHT,
-                padding: `${PAGE_VERTICAL_PADDING}px ${PAGE_HORIZONTAL_PADDING}px`
+                width: "100%",
+                height: "100%",
+                padding: `${PAGE_VERTICAL_PADDING_RATIO * 100}% ${PAGE_HORIZONTAL_PADDING_RATIO * 100}%`
               }}
             >
-              <div ref={pageViewportRef} className="overflow-hidden" style={{ height: A5_PAGE_HEIGHT }}>
+              <div ref={pageViewportRef} className="overflow-hidden" style={{ height: `${(A5_PAGE_HEIGHT / CANVAS_PAGE_HEIGHT) * 100}%` }}>
                 <div className="h-full w-full overflow-hidden">
                   <div style={{ transform: `translateY(-${pageOffset}px)` }} className="prose-manuscript">
                     <EditorContent editor={editor} />
